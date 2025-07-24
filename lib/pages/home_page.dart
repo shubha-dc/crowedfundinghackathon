@@ -1,138 +1,7 @@
-// import 'package:flutter/material.dart';
-
-// class HomePage extends StatelessWidget {
-//   const HomePage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Color(0xFF007AFF), // Blue background
-//       appBar: AppBar(
-//         backgroundColor: Colors.transparent,
-//         elevation: 0,
-//         actions: [
-//           Padding(
-//             padding: EdgeInsets.only(right: 16.0),
-//             child: Icon(Icons.search, color: Colors.white),
-//           ),
-//         ],
-//       ),
-//       body: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           // Profile + Balance
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 20),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 CircleAvatar(radius: 20, backgroundColor: Colors.white),
-//                 SizedBox(height: 20),
-//                 Text(
-//                   '\$18,199.24',
-//                   style: TextStyle(
-//                     fontSize: 32,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.white,
-//                   ),
-//                 ),
-//                 SizedBox(height: 4),
-//                 Text('USD - Dollar', style: TextStyle(color: Colors.white70)),
-//                 SizedBox(height: 20),
-//                 Row(
-//                   children: [
-//                     Expanded(child: _roundedButton("Add money")),
-//                     SizedBox(width: 10),
-//                     Expanded(child: _roundedButton("Exchange")),
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
-//           SizedBox(height: 30),
-//           // White Panel Section
-//           Expanded(
-//             child: Container(
-//               padding: EdgeInsets.all(20),
-//               decoration: BoxDecoration(
-//                 color: Colors.white,
-//                 borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-//               ),
-//               child: ListView(
-//                 children: [
-//                   Text(
-//                     "Accounts",
-//                     style: TextStyle(fontWeight: FontWeight.bold),
-//                   ),
-//                   SizedBox(height: 10),
-//                   _accountTile("40832-810-5-7000-012345", "\$18,199.24", "EUR"),
-//                   _accountTile("", "36.67", "GBP"),
-//                   SizedBox(height: 20),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(
-//                         "Cards",
-//                         style: TextStyle(fontWeight: FontWeight.bold),
-//                       ),
-//                       TextButton(onPressed: () {}, child: Text("+ Add Card")),
-//                     ],
-//                   ),
-//                   _cardTile("EUR *2330", "8,199.24"),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//       bottomNavigationBar: BottomNavigationBar(
-//         selectedItemColor: Color(0xFF007AFF),
-//         items: const [
-//           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: ''),
-//           BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: ''),
-//           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
-//           BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _roundedButton(String text) {
-//     return ElevatedButton(
-//       onPressed: () {},
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: Colors.white,
-//         foregroundColor: Color(0xFF007AFF),
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-//         padding: EdgeInsets.symmetric(vertical: 14),
-//       ),
-//       child: Text(text, style: TextStyle(fontWeight: FontWeight.bold)),
-//     );
-//   }
-
-//   Widget _accountTile(String accountNumber, String balance, String currency) {
-//     return Card(
-//       child: ListTile(
-//         leading: Icon(Icons.account_balance_wallet),
-//         title: Text('$balance $currency'),
-//         subtitle: accountNumber.isNotEmpty ? Text(accountNumber) : null,
-//       ),
-//     );
-//   }
-
-//   Widget _cardTile(String cardLabel, String balance) {
-//     return Card(
-//       child: ListTile(
-//         leading: Icon(Icons.credit_card),
-//         title: Text(cardLabel),
-//         trailing: Text('$balance EUR'),
-//       ),
-//     );
-//   }
-// }
-
-import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:crowedfundinghackathon/models/campaign.dart';
+import 'package:crowedfundinghackathon/pages/app_scaffold.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -146,7 +15,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Sample dummy campaign list
   final List<Campaign> campaigns = [
     Campaign(
       id: '1',
@@ -162,13 +30,11 @@ class _HomePageState extends State<HomePage> {
       goalAmount: 20000,
       raisedAmount: 15000,
     ),
-    // Add more campaigns here
   ];
 
-  // Dummy wallet balance
   double walletBalance = 5000;
+  int touchedIndex = -1;
 
-  // Hamburger menu drawer
   Widget _buildDrawer() {
     return Drawer(
       child: ListView(
@@ -190,7 +56,7 @@ class _HomePageState extends State<HomePage> {
           ListTile(
             leading: Icon(Icons.home),
             title: Text('Home'),
-            onTap: () => Navigator.pop(context), // Close drawer
+            onTap: () => Navigator.pop(context),
           ),
           ListTile(
             leading: Icon(Icons.campaign),
@@ -227,6 +93,46 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+
+  List<PieChartSectionData> _getPieChartSections() {
+    final data = [
+      {'title': 'Investment', 'value': 50.0, 'color': Colors.blue},
+      {'title': 'Borrowing', 'value': 50.0, 'color': Colors.red},
+    ];
+
+    return data.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+      final isTouched = index == touchedIndex;
+      final fontSize = isTouched ? 18.0 : 14.0;
+      final radius = isTouched ? 60.0 : 50.0;
+
+      return PieChartSectionData(
+        color: item['color'] as Color,
+        value: item['value'] as double,
+        title: '${item['value']}%',
+        radius: radius,
+        titleStyle: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+        badgeWidget: isTouched ? _buildBadge(item['title'].toString()) : null,
+        badgePositionPercentageOffset: .98,
+      );
+    }).toList();
+  }
+
+  Widget _buildBadge(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(text, style: TextStyle(color: Colors.white, fontSize: 12)),
     );
   }
 
@@ -274,7 +180,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       drawer: _buildDrawer(),
       appBar: AppBar(
         title: Text('AgroFund'),
@@ -290,7 +196,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             onPressed: () {
-              // Open the drawer
               Scaffold.of(context).openDrawer();
             },
           ),
@@ -305,17 +210,52 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: campaigns.isEmpty
-          ? Center(child: Text('No active campaigns.'))
-          : ListView.builder(
-              itemCount: campaigns.length,
-              itemBuilder: (context, index) =>
-                  _buildCampaignCard(campaigns[index]),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 8.0),
+              height: 200,
+              child: PieChart(
+                PieChartData(
+                  sections: _getPieChartSections(),
+                  borderData: FlBorderData(show: false),
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 40,
+                  pieTouchData: PieTouchData(
+                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                      setState(() {
+                        if (!event.isInterestedForInteractions ||
+                            pieTouchResponse == null ||
+                            pieTouchResponse.touchedSection == null) {
+                          touchedIndex = -1;
+                          return;
+                        }
+                        touchedIndex = pieTouchResponse
+                            .touchedSection!
+                            .touchedSectionIndex;
+                      });
+                    },
+                  ),
+                ),
+              ),
             ),
+            campaigns.isEmpty
+                ? Center(child: Text('No active campaigns.'))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: campaigns.length,
+                    itemBuilder: (context, index) =>
+                        _buildCampaignCard(campaigns[index]),
+                  ),
+          ],
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/createCampaign'),
-        child: Icon(Icons.add),
         tooltip: 'Create Campaign',
+        child: Icon(Icons.add),
       ),
     );
   }

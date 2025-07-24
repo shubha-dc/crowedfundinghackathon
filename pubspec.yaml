@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   animate_do: ^3.1.2
   http: ^0.13.6
+  lottie: ^2.7.0
+  shared_preferences: ^2.2.2
+  fl_chart: ^0.64.0
 
 dev_dependencies:
   flutter_test:
@@ -26,3 +29,4 @@ flutter:
     - assets/images/light-1.png
     - assets/images/light-2.png
     - assets/images/mastercard_logo.png
+    - assets/lootie/robot-assistant.json

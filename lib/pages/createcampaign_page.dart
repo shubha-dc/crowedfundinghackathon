@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CreateCampaignPage extends StatefulWidget {
+  const CreateCampaignPage({super.key});
+
   @override
   State<CreateCampaignPage> createState() => _CreateCampaignPageState();
 }
@@ -64,11 +66,13 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
                 decoration: InputDecoration(labelText: 'Goal Amount (₹)'),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'Enter goal amount';
+                  }
                   final amount = double.tryParse(value);
-                  if (amount == null || amount <= 0)
+                  if (amount == null || amount <= 0) {
                     return 'Enter valid amount';
+                  }
                   return null;
                 },
               ),
