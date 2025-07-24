@@ -4,7 +4,7 @@ import '../models/campaign.dart';
 class CampaignCard extends StatelessWidget {
   final Campaign campaign;
 
-  CampaignCard({required this.campaign});
+  const CampaignCard({super.key, required this.campaign});
 
   @override
   Widget build(BuildContext context) {

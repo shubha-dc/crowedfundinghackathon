@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+
+// void main() =>
+//     runApp(MaterialApp(debugShowCheckedModeBanner: false, home: HomePage()));
+
+import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
 import 'pages/home_page.dart';
@@ -17,7 +22,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
-        '/home': (context) => HomePage(),
+        '/home': (context) =>
+            HomePage(username: 'John Doe', userEmail: 'john@example.com'),
       },
     );
   }
