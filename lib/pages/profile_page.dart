@@ -7,12 +7,12 @@ class ProfilePage extends StatefulWidget {
   final String aadhaar;
 
   const ProfilePage({
-    Key? key,
+    super.key,
     required this.username,
     required this.email,
     required this.phone,
     required this.aadhaar,
-  }) : super(key: key);
+  });
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();

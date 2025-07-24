@@ -5,7 +5,7 @@ import 'package:crowedfundinghackathon/models/campaign.dart';
 class InvestPage extends StatefulWidget {
   final Campaign campaign;
 
-  const InvestPage({Key? key, required this.campaign}) : super(key: key);
+  const InvestPage({super.key, required this.campaign});
 
   @override
   State<InvestPage> createState() => _InvestPageState();

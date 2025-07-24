@@ -198,8 +198,9 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         validator: (value) {
           if (value == null || value.isEmpty) return 'Aadhaar ID is required';
-          if (!RegExp(r'^\d{12}$').hasMatch(value))
+          if (!RegExp(r'^\d{12}$').hasMatch(value)) {
             return 'Enter valid 12-digit Aadhaar';
+          }
           return null;
         },
       ),

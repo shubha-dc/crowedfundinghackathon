@@ -1,3 +1,4 @@
+import 'package:crowedfundinghackathon/pages/chatbot_screen.dart';
 import 'package:flutter/material.dart';
 
 // Import your pages
@@ -16,6 +17,8 @@ void main() {
 }
 
 class AgroFundApp extends StatelessWidget {
+  const AgroFundApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -39,6 +42,7 @@ class AgroFundApp extends StatelessWidget {
           aadhaar: '123412341234',
         ),
         '/createCampaign': (context) => CreateCampaignPage(),
+        '/chatbot': (context) => ChatbotScreen(),
       },
       // Use onGenerateRoute to handle arguments like Campaign
       onGenerateRoute: (settings) {

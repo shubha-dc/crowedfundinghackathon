@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CreateCampaignPage extends StatefulWidget {
+  const CreateCampaignPage({super.key});
+
   @override
   State<CreateCampaignPage> createState() => _CreateCampaignPageState();
 }

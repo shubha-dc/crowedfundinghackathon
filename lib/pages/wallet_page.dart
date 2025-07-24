@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class WalletPage extends StatefulWidget {
   final double initialBalance;
 
-  const WalletPage({Key? key, required this.initialBalance}) : super(key: key);
+  const WalletPage({super.key, required this.initialBalance});
 
   @override
   State<WalletPage> createState() => _WalletPageState();
