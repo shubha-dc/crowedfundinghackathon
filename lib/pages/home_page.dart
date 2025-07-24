@@ -8,7 +8,7 @@ class HomePage extends StatefulWidget {
   final String userEmail;
 
   const HomePage({Key? key, required this.username, required this.userEmail})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -22,6 +22,8 @@ class _HomePageState extends State<HomePage> {
       description: 'Help this farmer buy quality seeds to increase yield',
       goalAmount: 10000,
       raisedAmount: 2500,
+      sourcePercentage: 10,
+      sourceDescription: 'Low risk',
     ),
     Campaign(
       id: '2',
@@ -29,6 +31,8 @@ class _HomePageState extends State<HomePage> {
       description: 'Fund the setup of an efficient irrigation system',
       goalAmount: 20000,
       raisedAmount: 15000,
+      sourcePercentage: 58,
+      sourceDescription: 'Medium risk',
     ),
   ];
 
@@ -95,7 +99,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   List<PieChartSectionData> _getPieChartSections() {
     final data = [
       {'title': 'Investment', 'value': 50.0, 'color': Colors.blue},
@@ -136,14 +139,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCampaignCard(Campaign campaign) {
-    double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(
-      0.0,
-      1.0,
-    );
-    return Card(
+Widget _buildCampaignCard(Campaign campaign) {
+  double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(0.0, 1.0);
+
+  return GestureDetector(
+    onTap: () {
+      Navigator.pushNamed(context, '/invest', arguments: campaign);
+    },
+    child: Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -151,7 +157,11 @@ class _HomePageState extends State<HomePage> {
           children: [
             Text(
               campaign.title,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[800],
+              ),
             ),
             SizedBox(height: 6),
             Text(campaign.description),
@@ -162,21 +172,13 @@ class _HomePageState extends State<HomePage> {
               'Raised ₹${campaign.raisedAmount.toStringAsFixed(0)} of ₹${campaign.goalAmount.toStringAsFixed(0)}',
               style: TextStyle(color: Colors.grey[700]),
             ),
-            SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/invest', arguments: campaign);
-                },
-                child: Text('Invest'),
-              ),
-            ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

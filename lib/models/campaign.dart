@@ -4,6 +4,8 @@ class Campaign {
   final String description;
   final double goalAmount;
   double raisedAmount;
+  final int sourcePercentage;
+  final String sourceDescription;
 
   Campaign({
     required this.id,
@@ -11,5 +13,7 @@ class Campaign {
     required this.description,
     required this.goalAmount,
     required this.raisedAmount,
+    required this.sourcePercentage,
+    required this.sourceDescription,
   });
 }
