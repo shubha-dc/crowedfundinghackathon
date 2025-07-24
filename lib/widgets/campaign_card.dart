@@ -13,7 +13,7 @@ class CampaignCard extends StatelessWidget {
       child: ListTile(
         title: Text(campaign.title),
         subtitle: Text(campaign.description),
-        trailing: Text('\$${campaign.goal.toStringAsFixed(0)}'),
+        trailing: Text('\$${campaign.goalAmount.toStringAsFixed(0)}'),
       ),
     );
   }
