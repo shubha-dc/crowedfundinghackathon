@@ -1,10 +1,13 @@
 import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class InvestPage extends StatefulWidget {
   final Campaign campaign;
+  final String aadharId;
 
-  const InvestPage({Key? key, required this.campaign}) : super(key: key);
+  const InvestPage({Key? key, required this.campaign, required this.aadharId}) : super(key: key);
 
   @override
   State<InvestPage> createState() => _InvestPageState();
@@ -14,7 +17,7 @@ class _InvestPageState extends State<InvestPage> {
   final TextEditingController _amountController = TextEditingController();
   double walletBalance = 5000; // Replace with real wallet balance in real app
 
-  void _invest() {
+  void _invest() async {
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(
@@ -35,18 +38,54 @@ class _InvestPageState extends State<InvestPage> {
       return;
     }
 
-    // Deduct from wallet and add to campaign raised amount
-    setState(() {
-      walletBalance -= amount;
-      widget.campaign.raisedAmount += amount;
-    });
+    // TODO: Replace with actual aadhar_id and investor_account from user session/profile
+    String aadharId = widget.aadharId; // Placeholder
+    // int investorAccount = 1; // Placeholder
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Invested ₹$amount in "${widget.campaign.title}"'),
-      ),
-    );
-    Navigator.pop(context);
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/invest_in_project'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'aadhar_id': widget.campaign.farmerAadharId,
+          'project_id': int.parse(widget.campaign.id),
+          'amount': amount.toInt(),
+          'investor_account': aadharId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['message'] != null) {
+          setState(() {
+            walletBalance -= amount;
+            widget.campaign.raisedAmount += amount;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'])),
+          );
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Investment failed')),
+          );
+        }
+      } else {
+        String errorMsg = 'Investment failed';
+        try {
+          final errorBody = jsonDecode(response.body);
+          if (errorBody['error'] != null) {
+            errorMsg = errorBody['error'];
+          }
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override

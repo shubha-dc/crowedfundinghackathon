@@ -3,6 +3,7 @@ class Campaign {
   final String title;
   final String description;
   final double goalAmount;
+  final String farmerAadharId;
   double raisedAmount;
 
   Campaign({
@@ -11,5 +12,6 @@ class Campaign {
     required this.description,
     required this.goalAmount,
     required this.raisedAmount,
+    required this.farmerAadharId,
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'home_page.dart';
 
 class LoginPage extends StatelessWidget {
   final emailController = TextEditingController();
@@ -171,7 +172,16 @@ class LoginPage extends StatelessWidget {
                               }),
                             );
                             if (response.statusCode == 200) {
-                              Navigator.pushNamed(context, '/home');
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HomePage(
+                                    username: aadharId, // or fetch/display name if available
+                                    userEmail: '',      // fill if you have it
+                                    aadharId: aadharId, // <-- add this parameter
+                                  ),
+                                ),
+                              );
                             } else {
                               String errorMsg = 'Invalid credentials';
                               try {

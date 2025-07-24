@@ -133,40 +133,69 @@
 
 import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'invest_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
   final String userEmail;
+  final String aadharId; // <-- add this
 
-  const HomePage({Key? key, required this.username, required this.userEmail})
-    : super(key: key);
+  const HomePage({Key? key, required this.username, required this.userEmail, required this.aadharId})
+      : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  // Sample dummy campaign list
-  final List<Campaign> campaigns = [
-    Campaign(
-      id: '1',
-      title: 'Buy seeds for wheat',
-      description: 'Help this farmer buy quality seeds to increase yield',
-      goalAmount: 10000,
-      raisedAmount: 2500,
-    ),
-    Campaign(
-      id: '2',
-      title: 'Irrigation system setup',
-      description: 'Fund the setup of an efficient irrigation system',
-      goalAmount: 20000,
-      raisedAmount: 15000,
-    ),
-    // Add more campaigns here
-  ];
+  List<Campaign> campaigns = [];
+  bool isLoading = true;
+  String? errorMsg;
 
   // Dummy wallet balance
   double walletBalance = 5000;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCampaigns();
+  }
+
+  Future<void> fetchCampaigns() async {
+    setState(() {
+      isLoading = true;
+      errorMsg = null;
+    });
+    try {
+      final response = await http.get(Uri.parse('http://10.0.2.2:8000/get_projects/all'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['projects'] != null && data['projects'] is List) {
+          campaigns = (data['projects'] as List)
+              .map((item) => Campaign(
+            id: item['project_id'].toString(),
+            title: item['name'] ?? '',
+            description: item['description'] ?? '',
+            goalAmount: (item['amount_needed'] ?? 0).toDouble(),
+            raisedAmount: (item['amount_raised'] ?? 0).toDouble(),
+            farmerAadharId: item['farmer_aadhar_id'] ?? '',
+          ))
+              .toList();
+        } else {
+          campaigns = [];
+        }
+      } else {
+        errorMsg = 'Failed to load projects';
+      }
+    } catch (e) {
+      errorMsg = 'Error: $e';
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   // Hamburger menu drawer
   Widget _buildDrawer() {
@@ -261,7 +290,15 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.centerRight,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/invest', arguments: campaign);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InvestPage(
+                        campaign: campaign,
+                        aadharId: widget.aadharId, // <-- pass it here
+                      ),
+                    ),
+                  );
                 },
                 child: Text('Invest'),
               ),
@@ -305,7 +342,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: campaigns.isEmpty
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : errorMsg != null
+          ? Center(child: Text(errorMsg!))
+          : campaigns.isEmpty
           ? Center(child: Text('No active campaigns.'))
           : ListView.builder(
               itemCount: campaigns.length,
