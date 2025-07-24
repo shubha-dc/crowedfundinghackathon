@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatelessWidget {
   final emailController = TextEditingController();
@@ -156,16 +158,35 @@ class LoginPage extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          String email = emailController.text.trim();
+                        onPressed: () async {
+                          String aadharId = emailController.text.trim();
                           String password = passwordController.text.trim();
-                          // Dummy login check
-                          if (email == "test@example.com" &&
-                              password == "password") {
-                            Navigator.pushNamed(context, '/home');
-                          } else {
+                          try {
+                            final response = await http.post(
+                              Uri.parse('http://10.0.2.2:8000/login/login_farmer'),
+                              headers: {'Content-Type': 'application/json'},
+                              body: jsonEncode({
+                                'aadhar_id': aadharId,
+                                'password': password,
+                              }),
+                            );
+                            if (response.statusCode == 200) {
+                              Navigator.pushNamed(context, '/home');
+                            } else {
+                              String errorMsg = 'Invalid credentials';
+                              try {
+                                final errorBody = jsonDecode(response.body);
+                                if (errorBody['detail'] != null) {
+                                  errorMsg = errorBody['detail'];
+                                }
+                              } catch (_) {}
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(errorMsg)),
+                              );
+                            }
+                          } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Invalid credentials')),
+                              SnackBar(content: Text('Error: $e')),
                             );
                           }
                         },
