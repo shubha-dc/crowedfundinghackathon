@@ -131,24 +131,8 @@
 //   }
 // }
 
+import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:flutter/material.dart';
-
-// Dummy campaign model
-class Campaign {
-  final String id;
-  final String title;
-  final String description;
-  final double goalAmount;
-  final double raisedAmount;
-
-  Campaign({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.goalAmount,
-    required this.raisedAmount,
-  });
-}
 
 class HomePage extends StatefulWidget {
   final String username;

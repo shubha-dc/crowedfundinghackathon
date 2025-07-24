@@ -1,11 +1,15 @@
 class Campaign {
+  final String id;
   final String title;
   final String description;
-  final double goal;
+  final double goalAmount;
+  double raisedAmount;
 
   Campaign({
+    required this.id,
     required this.title,
     required this.description,
-    required this.goal,
+    required this.goalAmount,
+    required this.raisedAmount,
   });
 }
