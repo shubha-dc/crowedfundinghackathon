@@ -33,7 +33,7 @@ class AgroFundApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
         '/home': (context) =>
-            HomePage(username: 'John Doe', userEmail: 'john@example.com'),
+            HomePage(username: 'John Doe', userEmail: 'john@example.com', aadharId: '123456789123'),
         '/wallet': (context) => WalletPage(initialBalance: 5000),
         '/profile': (context) => ProfilePage(
           username: 'John Doe',
@@ -49,7 +49,7 @@ class AgroFundApp extends StatelessWidget {
         if (settings.name == '/invest') {
           final camp = settings.arguments as model.Campaign;
           return MaterialPageRoute(
-            builder: (context) => InvestPage(campaign: camp),
+            builder: (context) => InvestPage(campaign: camp, aadharId: '123456789123'),
           );
         }
         return null;
