@@ -5,6 +5,7 @@ import 'package:crowedfundinghackathon/pages/app_scaffold.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'invest_page.dart';
+import 'wallet_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -23,13 +24,16 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   String? errorMsg;
 
-  double walletBalance = 5000;
+  // Dummy wallet balance
+  double walletBalance = 0;
+  bool isWalletLoading = true;
   int touchedIndex = -1;
 
   @override
   void initState() {
     super.initState();
     fetchCampaigns();
+    fetchWalletBalance();
   }
 
   Future<void> fetchCampaigns() async {
@@ -63,6 +67,28 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() {
       isLoading = false;
+    });
+  }
+
+  Future<void> fetchWalletBalance() async {
+    setState(() {
+      isWalletLoading = true;
+    });
+    try {
+      final response = await http.get(Uri.parse('http://10.0.2.2:8000/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['balance'] != null) {
+          // Remove currency symbol if present
+          String balanceStr = data['balance'].replaceAll(RegExp(r'[^0-9.]'), '');
+          walletBalance = double.tryParse(balanceStr) ?? 0;
+        }
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+    setState(() {
+      isWalletLoading = false;
     });
   }
 
@@ -249,9 +275,15 @@ Widget _buildCampaignCard(Campaign campaign) {
         actions: [
           IconButton(
             icon: Icon(Icons.account_balance_wallet),
-            tooltip: 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
+            // tooltip: 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
+            tooltip: isWalletLoading ? 'Wallet: ...' : 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
             onPressed: () {
-              Navigator.pushNamed(context, '/wallet');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WalletPage(aadharId: widget.aadharId),
+                ),
+              );
             },
           ),
         ],
