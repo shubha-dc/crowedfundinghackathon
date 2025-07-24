@@ -31,7 +31,7 @@ class AgroFundApp extends StatelessWidget {
         '/register': (context) => RegisterPage(),
         '/home': (context) =>
             HomePage(username: 'John Doe', userEmail: 'john@example.com', aadharId: '123456789123'),
-        '/wallet': (context) => WalletPage(initialBalance: 5000),
+        '/wallet': (context) => WalletPage(aadharId: '5000'),
         '/profile': (context) => ProfilePage(
           username: 'John Doe',
           email: 'john@example.com',
