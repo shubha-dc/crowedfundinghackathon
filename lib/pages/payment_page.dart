@@ -56,7 +56,9 @@ class _PaymentPageState extends State<PaymentPage> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text("Confirm Repayment"),
-        content: Text("Are you sure you want to repay ₹${amount.toStringAsFixed(2)}?"),
+        content: Text(
+          "Are you sure you want to repay ₹${amount.toStringAsFixed(2)}?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -80,15 +82,19 @@ class _PaymentPageState extends State<PaymentPage> {
       widget.campaign.raisedAmount += amount;
     });
 
-    _showToast('Repaid ₹${amount.toStringAsFixed(2)} in "${widget.campaign.title}"');
+    _showToast(
+      'Repaid ₹${amount.toStringAsFixed(2)} in "${widget.campaign.title}"',
+    );
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final campaign = widget.campaign;
-    final double progress =
-        (campaign.raisedAmount / campaign.goalAmount).clamp(0.0, 1.0);
+    final double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(
+      0.0,
+      1.0,
+    );
     final bool isFullyFunded = campaign.raisedAmount >= campaign.goalAmount;
 
     final int riskPercent = campaign.sourcePercentage;
@@ -131,7 +137,10 @@ class _PaymentPageState extends State<PaymentPage> {
                   Expanded(
                     child: Text(
                       campaign.title,
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -171,8 +180,9 @@ class _PaymentPageState extends State<PaymentPage> {
           height: 64,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  isFullyFunded ? Colors.grey : Theme.of(context).primaryColor,
+              backgroundColor: isFullyFunded
+                  ? Colors.grey
+                  : Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
               elevation: 4,
               padding: EdgeInsets.symmetric(vertical: 16),

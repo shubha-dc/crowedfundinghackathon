@@ -131,7 +131,7 @@ class LoginPage extends StatelessWidget {
                               controller: emailController,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
-                                hintText: "Email or Phone number",
+                                hintText: "Adhar number",
                                 hintStyle: TextStyle(color: Colors.grey[700]),
                               ),
                             ),
@@ -164,7 +164,9 @@ class LoginPage extends StatelessWidget {
                           String password = passwordController.text.trim();
                           try {
                             final response = await http.post(
-                              Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/login/login_farmer'),
+                              Uri.parse(
+                                'https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/login/login_farmer',
+                              ),
                               headers: {'Content-Type': 'application/json'},
                               body: jsonEncode({
                                 'aadhar_id': aadharId,
@@ -176,9 +178,11 @@ class LoginPage extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => HomePage(
-                                    username: aadharId, // or fetch/display name if available
-                                    userEmail: '',      // fill if you have it
-                                    aadharId: aadharId, // <-- add this parameter
+                                    username:
+                                        aadharId, // or fetch/display name if available
+                                    userEmail: '', // fill if you have it
+                                    aadharId:
+                                        aadharId, // <-- add this parameter
                                   ),
                                 ),
                               );
@@ -190,9 +194,9 @@ class LoginPage extends StatelessWidget {
                                   errorMsg = errorBody['detail'];
                                 }
                               } catch (_) {}
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(errorMsg)),
-                              );
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(errorMsg)));
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(

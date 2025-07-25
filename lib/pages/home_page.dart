@@ -5,9 +5,8 @@ import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:crowedfundinghackathon/pages/app_scaffold.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'invest_page.dart';
 import 'wallet_page.dart';
-import 'explore_page.dart'; // Make sure these imports match your file structure
+import 'explore_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -41,9 +40,15 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    fetchCampaigns();
-    fetchFarmerData();
-    fetchWalletBalance();
+    _refreshData();
+  }
+
+  Future<void> _refreshData() async {
+    await Future.wait([
+      fetchCampaigns(),
+      fetchFarmerData(),
+      fetchWalletBalance(),
+    ]);
   }
 
   Future<void> fetchCampaigns() async {
@@ -78,8 +83,6 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             campaigns = fetchedCampaigns;
           });
-        } else {
-          campaigns = [];
         }
       } else {
         errorMsg = 'Failed to load projects';
@@ -158,21 +161,34 @@ class _HomePageState extends State<HomePage> {
               child: Text(
                 (isFarmerLoading ? '' : (farmerName ?? widget.username))
                         .isNotEmpty
-                    ? (isFarmerLoading
-                              ? ''
-                              : (farmerName ?? widget.username))[0]
-                          .toUpperCase()
+                    ? (farmerName ?? widget.username)[0].toUpperCase()
                     : '?',
                 style: TextStyle(color: Colors.blue),
               ),
             ),
           ),
           ListTile(
+            leading: Icon(Icons.home),
+            title: Text('Home'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/home');
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.campaign),
             title: Text('My Campaigns'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/myCampaigns');
+              Navigator.pushNamed(context, '/repay');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.person),
+            title: Text('My Profile'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/profile');
             },
           ),
           ListTile(
@@ -272,24 +288,6 @@ class _HomePageState extends State<HomePage> {
               'Raised ₹${campaign.raisedAmount.toStringAsFixed(0)} of ₹${campaign.goalAmount.toStringAsFixed(0)}',
               style: TextStyle(color: Colors.grey[700]),
             ),
-            SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InvestPage(
-                        campaign: campaign,
-                        aadharId: widget.aadharId,
-                      ),
-                    ),
-                  );
-                },
-                child: Text('Invest'),
-              ),
-            ),
           ],
         ),
       ),
@@ -331,65 +329,82 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 8),
-            Container(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: _getPieChartSections(),
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 40,
-                  pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                      setState(() {
-                        if (!event.isInterestedForInteractions ||
-                            pieTouchResponse?.touchedSection == null) {
-                          touchedIndex = -1;
-                          return;
-                        }
-                        touchedIndex = pieTouchResponse!
-                            .touchedSection!
-                            .touchedSectionIndex;
-                      });
-                    },
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _refreshData,
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(bottom: 160),
+              child: Column(
+                children: [
+                  SizedBox(height: 8),
+                  Container(
+                    height: 200,
+                    child: PieChart(
+                      PieChartData(
+                        sections: _getPieChartSections(),
+                        borderData: FlBorderData(show: false),
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 40,
+                        pieTouchData: PieTouchData(
+                          touchCallback:
+                              (FlTouchEvent event, pieTouchResponse) {
+                                setState(() {
+                                  if (!event.isInterestedForInteractions ||
+                                      pieTouchResponse?.touchedSection ==
+                                          null) {
+                                    touchedIndex = -1;
+                                    return;
+                                  }
+                                  touchedIndex = pieTouchResponse!
+                                      .touchedSection!
+                                      .touchedSectionIndex;
+                                });
+                              },
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  campaigns.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text('No active campaigns.'),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: campaigns.length,
+                          itemBuilder: (context, index) =>
+                              _buildCampaignCard(campaigns[index]),
+                        ),
+                ],
               ),
             ),
-            campaigns.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text('No active campaigns.'),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: campaigns.length,
-                    itemBuilder: (context, index) =>
-                        _buildCampaignCard(campaigns[index]),
-                  ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
+          ),
+          Positioned(
+            bottom: 20,
+            left: 32,
+            right: 16,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => RepayPage(
-                          username: 'John Doe',
-                          userEmail: 'john@example.com',
+                          username: widget.username,
+                          userEmail: widget.userEmail,
                         ),
                       ),
                     ),
                     child: Text('My Borrowing'),
                   ),
-                  ElevatedButton(
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -398,17 +413,13 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: Text('Explore Campaigns'),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/createCampaign'),
-        tooltip: 'Create Campaign',
-        child: Icon(Icons.add),
-      ),
+      floatingActionButton: null,
     );
   }
 }

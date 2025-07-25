@@ -53,19 +53,21 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
       };
 
       try {
-        final url = Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/create_project/');
+        final url = Uri.parse(
+          'https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/create_project/',
+        );
         final response = await http.post(
           url,
-          headers: {
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
+          headers: {'Content-Type': 'application/json; charset=UTF-8'},
           body: jsonEncode(campaignPayload),
         );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           final responseData = jsonDecode(response.body);
 
-          Map<String, dynamic> dataForReviewPage = Map<String, dynamic>.from(campaignPayload); // Start with user's input
+          Map<String, dynamic> dataForReviewPage = Map<String, dynamic>.from(
+            campaignPayload,
+          ); // Start with user's input
 
           // Add information from the backend response
           if (responseData is Map<String, dynamic>) {
@@ -73,18 +75,22 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
               dataForReviewPage['backend_message'] = responseData['message'];
             }
             if (responseData.containsKey('transaction_hash')) {
-              dataForReviewPage['transaction_hash'] = responseData['transaction_hash'];
+              dataForReviewPage['transaction_hash'] =
+                  responseData['transaction_hash'];
             }
           }
           // Add a generic success message if specific one isn't available
-          dataForReviewPage.putIfAbsent('backend_message', () => 'Campaign submitted successfully!');
-
+          dataForReviewPage.putIfAbsent(
+            'backend_message',
+            () => 'Campaign submitted successfully!',
+          );
 
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => CampaignReviewPage(campaignData: dataForReviewPage),
+              builder: (context) =>
+                  CampaignReviewPage(campaignData: dataForReviewPage),
             ),
           ).then((_) {
             _formKey.currentState?.reset();
@@ -97,16 +103,20 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
             _cropTypeController.clear();
             _landAreaController.clear();
           });
-
         } else {
           // Error Handling - this part can remain largely the same
           if (!mounted) return; // Check mounted before setState
-          setState(() { _isLoading = false; });
+          setState(() {
+            _isLoading = false;
+          });
           final errorData = jsonDecode(response.body);
-          final errorMessage = errorData['detail'] ?? errorData['message'] ?? 'Failed to create campaign. Status: ${response.statusCode}';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $errorMessage')),
-          );
+          final errorMessage =
+              errorData['detail'] ??
+              errorData['message'] ??
+              'Failed to create campaign. Status: ${response.statusCode}';
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $errorMessage')));
         }
       } catch (e) {
         if (!mounted) return; // Check mounted before setState
@@ -119,12 +129,12 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
       }
     } else {
       // Form is not valid
-      if (_isLoading) { // Ensure isLoading is false if validation fails while it was true
+      if (_isLoading) {
+        // Ensure isLoading is false if validation fails while it was true
         setState(() {
           _isLoading = false;
         });
       }
-
 
       // Navigator.push(
       //   context,
@@ -148,8 +158,9 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
               TextFormField(
                 controller: _projectNameController,
                 decoration: InputDecoration(labelText: 'Project Name'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter project name' : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Enter project name'
+                    : null,
               ),
               SizedBox(height: 12),
               TextFormField(
@@ -223,10 +234,7 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
                 },
               ),
               SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submitCampaign,
-                child: Text('Next: Review'),
-              ),
+              ElevatedButton(onPressed: _submitCampaign, child: Text('Review')),
             ],
           ),
         ),
@@ -239,7 +247,7 @@ class CampaignReviewPage extends StatelessWidget {
   final Map<String, dynamic> campaignData;
 
   const CampaignReviewPage({Key? key, required this.campaignData})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -250,13 +258,15 @@ class CampaignReviewPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...campaignData.entries.map((entry) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    '${entry.key}: ${entry.value}',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )),
+            ...campaignData.entries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  '${entry.key}: ${entry.value}',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -281,7 +291,7 @@ class CampaignReviewPage extends StatelessWidget {
                               Navigator.pop(context); // Back to form
                             },
                             child: Text('OK'),
-                          )
+                          ),
                         ],
                       ),
                     );
@@ -289,7 +299,7 @@ class CampaignReviewPage extends StatelessWidget {
                   child: Text('Submit'),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
