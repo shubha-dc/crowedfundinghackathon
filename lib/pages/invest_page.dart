@@ -77,27 +77,22 @@ class _InvestPageState extends State<InvestPage> {
     );
   }
 
-  void _finalizeInvestment(double amount) {
-    setState(() {
-      walletBalance -= amount;
-      widget.campaign.raisedAmount += amount;
-    });
-
-    _showToast('Invested ₹${amount.toStringAsFixed(2)} in "${widget.campaign.title}"');
-    Navigator.pop(context);
-    // TODO: Replace with actual aadhar_id and investor_account from user session/profile
-    String aadharId = widget.aadharId; // Placeholder
-    // int investorAccount = 1; // Placeholder
-
+  Future<void> _finalizeInvestment(double amount) async {
+    // Use the logged-in user's aadharId as investor_account
+    String aadharId = widget.aadharId;
+    print('Project id: ${widget.campaign.id}');
+    print('Amount: $amount');
+    print('Investor aadhar id: $aadharId');
+    print('FA: ${widget.campaign.farmerAadharId}');
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/invest_in_project'),
+        Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/invest_in_project/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'aadhar_id': widget.campaign.farmerAadharId,
+          'aadhar_id': widget.campaign.farmerAadharId, // Farmer's aadharId
           'project_id': int.parse(widget.campaign.id),
           'amount': amount.toInt(),
-          'investor_account': aadharId,
+          'investor_aadhar_id': aadharId, // Investor aadhar id
         }),
       );
       if (response.statusCode == 200) {
@@ -107,14 +102,10 @@ class _InvestPageState extends State<InvestPage> {
             walletBalance -= amount;
             widget.campaign.raisedAmount += amount;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'])),
-          );
+          _showToast('Invested ₹${amount.toStringAsFixed(2)} in \"${widget.campaign.title}\"');
           Navigator.pop(context);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Investment failed')),
-          );
+          _showToast('Investment failed');
         }
       } else {
         String errorMsg = 'Investment failed';
@@ -124,14 +115,10 @@ class _InvestPageState extends State<InvestPage> {
             errorMsg = errorBody['error'];
           }
         } catch (_) {}
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)),
-        );
+        _showToast(errorMsg);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      _showToast('Error: $e');
     }
   }
 

@@ -78,7 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/register/register_farmer'), // Replace this URL
+        Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/register/register_farmer'), // Replace this URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );

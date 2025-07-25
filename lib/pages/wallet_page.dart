@@ -29,7 +29,7 @@ class _WalletPageState extends State<WalletPage> {
     });
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'),
+        Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'),
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

@@ -164,7 +164,7 @@ class LoginPage extends StatelessWidget {
                           String password = passwordController.text.trim();
                           try {
                             final response = await http.post(
-                              Uri.parse('http://10.0.2.2:8000/login/login_farmer'),
+                              Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/login/login_farmer'),
                               headers: {'Content-Type': 'application/json'},
                               body: jsonEncode({
                                 'aadhar_id': aadharId,

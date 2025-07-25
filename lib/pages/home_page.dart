@@ -42,11 +42,12 @@ class _HomePageState extends State<HomePage> {
       errorMsg = null;
     });
     try {
-      final response = await http.get(Uri.parse('http://10.0.2.2:8000/get_projects/all'));
+      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/get_projects/all'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['projects'] != null && data['projects'] is List) {
-          campaigns = (data['projects'] as List)
+          final rawProjectList = data['projects'] as List;
+          final fetchedCampaigns = rawProjectList
               .map((item) => Campaign(
             id: item['project_id'].toString(),
             title: item['name'] ?? '',
@@ -54,8 +55,13 @@ class _HomePageState extends State<HomePage> {
             goalAmount: (item['amount_needed'] ?? 0).toDouble(),
             raisedAmount: (item['amount_raised'] ?? 0).toDouble(),
             farmerAadharId: item['farmer_aadhar_id'] ?? '',
+            sourcePercentage: 44,
+            sourceDescription: 'Medium',
           ))
               .toList();
+          setState(() {
+            campaigns = List<Campaign>.from(fetchedCampaigns); // Update the state variable
+          });
         } else {
           campaigns = [];
         }
@@ -75,7 +81,7 @@ class _HomePageState extends State<HomePage> {
       isWalletLoading = true;
     });
     try {
-      final response = await http.get(Uri.parse('http://10.0.2.2:8000/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'));
+      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['balance'] != null) {
@@ -247,7 +253,8 @@ Widget _buildCampaignCard(Campaign campaign) {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   @override
