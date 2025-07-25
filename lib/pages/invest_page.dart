@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:crowedfundinghackathon/models/campaign.dart';
 
 class InvestPage extends StatefulWidget {
   final Campaign campaign;
+  final String aadharId;
 
-  const InvestPage({super.key, required this.campaign});
+  const InvestPage({Key? key, required this.campaign, required this.aadharId}) : super(key: key);
 
   @override
   State<InvestPage> createState() => _InvestPageState();
@@ -37,7 +40,7 @@ class _InvestPageState extends State<InvestPage> {
     );
   }
 
-  void _invest() {
+  void _invest() async {
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       _showToast('Enter valid amount');
@@ -74,14 +77,49 @@ class _InvestPageState extends State<InvestPage> {
     );
   }
 
-  void _finalizeInvestment(double amount) {
-    setState(() {
-      walletBalance -= amount;
-      widget.campaign.raisedAmount += amount;
-    });
-
-    _showToast('Invested ₹${amount.toStringAsFixed(2)} in "${widget.campaign.title}"');
-    Navigator.pop(context);
+  Future<void> _finalizeInvestment(double amount) async {
+    // Use the logged-in user's aadharId as investor_account
+    String aadharId = widget.aadharId;
+    print('Project id: ${widget.campaign.id}');
+    print('Amount: $amount');
+    print('Investor aadhar id: $aadharId');
+    print('FA: ${widget.campaign.farmerAadharId}');
+    try {
+      final response = await http.post(
+        Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/invest_in_project/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'aadhar_id': widget.campaign.farmerAadharId, // Farmer's aadharId
+          'project_id': int.parse(widget.campaign.id),
+          'amount': amount.toInt(),
+          'investor_aadhar_id': aadharId, // Investor aadhar id
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['message'] != null) {
+          setState(() {
+            walletBalance -= amount;
+            widget.campaign.raisedAmount += amount;
+          });
+          _showToast('Invested ₹${amount.toStringAsFixed(2)} in \"${widget.campaign.title}\"');
+          Navigator.pop(context);
+        } else {
+          _showToast('Investment failed');
+        }
+      } else {
+        String errorMsg = 'Investment failed';
+        try {
+          final errorBody = jsonDecode(response.body);
+          if (errorBody['error'] != null) {
+            errorMsg = errorBody['error'];
+          }
+        } catch (_) {}
+        _showToast(errorMsg);
+      }
+    } catch (e) {
+      _showToast('Error: $e');
+    }
   }
 
   @override

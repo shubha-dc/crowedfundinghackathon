@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:crowedfundinghackathon/pages/app_scaffold.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'invest_page.dart';
+import 'wallet_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
   final String userEmail;
+  final String aadharId; // <-- add this
 
-  const HomePage({Key? key, required this.username, required this.userEmail})
+  const HomePage({Key? key, required this.username, required this.userEmail, required this.aadharId})
       : super(key: key);
 
   @override
@@ -15,30 +20,85 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Campaign> campaigns = [
-    Campaign(
-      id: '1',
-      title: 'Buy seeds for wheat',
-      description: 'Help this farmer buy quality seeds to increase yield',
-      goalAmount: 10000,
-      raisedAmount: 2500,
-      sourcePercentage: 10,
-      sourceDescription: 'Low risk',
-    ),
-    Campaign(
-      id: '2',
-      title: 'Irrigation system setup',
-      description: 'Fund the setup of an efficient irrigation system',
-      goalAmount: 20000,
-      raisedAmount: 15000,
-      sourcePercentage: 58,
-      sourceDescription: 'Medium risk',
-    ),
-  ];
+  List<Campaign> campaigns = [];
+  bool isLoading = true;
+  String? errorMsg;
 
-  double walletBalance = 5000;
+  // Dummy wallet balance
+  double walletBalance = 0;
+  bool isWalletLoading = true;
   int touchedIndex = -1;
 
+  @override
+  void initState() {
+    super.initState();
+    fetchCampaigns();
+    fetchWalletBalance();
+  }
+
+  Future<void> fetchCampaigns() async {
+    setState(() {
+      isLoading = true;
+      errorMsg = null;
+    });
+    try {
+      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/get_projects/all'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['projects'] != null && data['projects'] is List) {
+          final rawProjectList = data['projects'] as List;
+          final fetchedCampaigns = rawProjectList
+              .map((item) => Campaign(
+            id: item['project_id'].toString(),
+            title: item['name'] ?? '',
+            description: item['description'] ?? '',
+            goalAmount: (item['amount_needed'] ?? 0).toDouble(),
+            raisedAmount: (item['amount_raised'] ?? 0).toDouble(),
+            farmerAadharId: item['farmer_aadhar_id'] ?? '',
+            sourcePercentage: 44,
+            sourceDescription: 'Medium',
+          ))
+              .toList();
+          setState(() {
+            campaigns = List<Campaign>.from(fetchedCampaigns); // Update the state variable
+          });
+        } else {
+          campaigns = [];
+        }
+      } else {
+        errorMsg = 'Failed to load projects';
+      }
+    } catch (e) {
+      errorMsg = 'Error: $e';
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> fetchWalletBalance() async {
+    setState(() {
+      isWalletLoading = true;
+    });
+    try {
+      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['balance'] != null) {
+          // Remove currency symbol if present
+          String balanceStr = data['balance'].replaceAll(RegExp(r'[^0-9.]'), '');
+          walletBalance = double.tryParse(balanceStr) ?? 0;
+        }
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+    setState(() {
+      isWalletLoading = false;
+    });
+  }
+
+  // Hamburger menu drawer
   Widget _buildDrawer() {
     return Drawer(
       child: ListView(
@@ -172,13 +232,30 @@ Widget _buildCampaignCard(Campaign campaign) {
               'Raised ₹${campaign.raisedAmount.toStringAsFixed(0)} of ₹${campaign.goalAmount.toStringAsFixed(0)}',
               style: TextStyle(color: Colors.grey[700]),
             ),
+            SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InvestPage(
+                        campaign: campaign,
+                        aadharId: widget.aadharId, // <-- pass it here
+                      ),
+                    ),
+                  );
+                },
+                child: Text('Invest'),
+              ),
+            ),
           ],
         ),
       ),
     ),
   );
-}
-
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,9 +282,15 @@ Widget _buildCampaignCard(Campaign campaign) {
         actions: [
           IconButton(
             icon: Icon(Icons.account_balance_wallet),
-            tooltip: 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
+            // tooltip: 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
+            tooltip: isWalletLoading ? 'Wallet: ...' : 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
             onPressed: () {
-              Navigator.pushNamed(context, '/wallet');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WalletPage(aadharId: widget.aadharId),
+                ),
+              );
             },
           ),
         ],

@@ -19,6 +19,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  // Add new controllers for state and city
+  final stateController = TextEditingController(); // <-- ADD THIS
+  final cityController = TextEditingController();
 
   bool isLoading = false;
   bool passwordVisible = false;
@@ -35,6 +38,9 @@ class _RegisterPageState extends State<RegisterPage> {
     phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    // Dispose the new controllers
+    stateController.dispose(); // <-- ADD THIS
+    cityController.dispose();
     super.dispose();
   }
 
@@ -48,22 +54,31 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    if (stateController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('State is required')));
+      return;
+    }
+    if (cityController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('City is required')));
+      return;
+    }
+
+
     final body = {
       'aadhar_id': aadharController.text.trim(),
-      'first_name': firstNameController.text.trim(),
-      'last_name': lastNameController.text.trim(),
+      'name': '${firstNameController.text.trim()} ${lastNameController.text.trim()}',
       'email': emailController.text.trim(),
       'phone': phoneController.text.trim(),
-      'password': passwordController.text.trim(),
-      'gender': selectedGender,
-      'dob': selectedDob?.toIso8601String(),
+      'password_hash': passwordController.text.trim(),
+      'state': stateController.text.trim(),
+      'city': cityController.text.trim(),
     };
 
     setState(() => isLoading = true);
 
     try {
       final response = await http.post(
-        Uri.parse('https://your-api-url.com/register'), // Replace this URL
+        Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/register/register_farmer'), // Replace this URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
@@ -147,6 +162,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: phoneController,
                       label: 'Phone',
                       keyboardType: TextInputType.phone,
+                    ),
+                    // Add State and City fields here
+                    _buildTextField( // <-- ADD THIS WIDGET
+                      controller: stateController,
+                      label: 'State',
+                    ),
+                    _buildTextField( // <-- ADD THIS WIDGET
+                      controller: cityController,
+                      label: 'City',
                     ),
                     _buildGenderDropdown(),
                     _buildDobPicker(),

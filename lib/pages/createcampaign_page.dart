@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CreateCampaignPage extends StatefulWidget {
   const CreateCampaignPage({super.key});
@@ -8,6 +10,7 @@ class CreateCampaignPage extends StatefulWidget {
 }
 
 class _CreateCampaignPageState extends State<CreateCampaignPage> {
+  bool _isLoading = true;
   final _formKey = GlobalKey<FormState>();
 
   final _projectNameController = TextEditingController();
@@ -32,25 +35,103 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
     super.dispose();
   }
 
-  void _submitCampaign() {
+  Future<void> _submitCampaign() async {
     if (_formKey.currentState!.validate()) {
-      final campaignData = {
-        'Project Name': _projectNameController.text.trim(),
-        'Project Description': _projectDescriptionController.text.trim(),
-        'Amount Needed': int.parse(_amountNeededController.text.trim()),
-        'Interest Rate': int.parse(_interestRateController.text.trim()),
-        'Farmer Aadhaar ID': _aadharController.text.trim(),
-        'Duration (Months)': int.parse(_durationController.text.trim()),
-        'Crop Type': _cropTypeController.text.trim(),
-        'Land Area': int.parse(_landAreaController.text.trim()),
+      setState(() {
+        _isLoading = true; // Show loading indicator
+      });
+
+      final campaignPayload = {
+        'project_name': _projectNameController.text.trim(),
+        'project_description': _projectDescriptionController.text.trim(),
+        'amount_needed': int.parse(_amountNeededController.text.trim()),
+        'interest_rate': int.parse(_interestRateController.text.trim()),
+        'farmer_aadhar_id': _aadharController.text.trim(),
+        'duration_in_months': int.parse(_durationController.text.trim()),
+        'crop_type': _cropTypeController.text.trim(),
+        'land_area': int.parse(_landAreaController.text.trim()),
       };
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CampaignReviewPage(campaignData: campaignData),
-        ),
-      );
+      try {
+        final url = Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/create_project/');
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(campaignPayload),
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final responseData = jsonDecode(response.body);
+
+          Map<String, dynamic> dataForReviewPage = Map<String, dynamic>.from(campaignPayload); // Start with user's input
+
+          // Add information from the backend response
+          if (responseData is Map<String, dynamic>) {
+            if (responseData.containsKey('message')) {
+              dataForReviewPage['backend_message'] = responseData['message'];
+            }
+            if (responseData.containsKey('transaction_hash')) {
+              dataForReviewPage['transaction_hash'] = responseData['transaction_hash'];
+            }
+          }
+          // Add a generic success message if specific one isn't available
+          dataForReviewPage.putIfAbsent('backend_message', () => 'Campaign submitted successfully!');
+
+
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CampaignReviewPage(campaignData: dataForReviewPage),
+            ),
+          ).then((_) {
+            _formKey.currentState?.reset();
+            _projectNameController.clear();
+            _projectDescriptionController.clear();
+            _amountNeededController.clear();
+            _interestRateController.clear();
+            _aadharController.clear();
+            _durationController.clear();
+            _cropTypeController.clear();
+            _landAreaController.clear();
+          });
+
+        } else {
+          // Error Handling - this part can remain largely the same
+          if (!mounted) return; // Check mounted before setState
+          setState(() { _isLoading = false; });
+          final errorData = jsonDecode(response.body);
+          final errorMessage = errorData['detail'] ?? errorData['message'] ?? 'Failed to create campaign. Status: ${response.statusCode}';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $errorMessage')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return; // Check mounted before setState
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Form is not valid
+      if (_isLoading) { // Ensure isLoading is false if validation fails while it was true
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
+
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => CampaignReviewPage(campaignData: campaignData),
+      //   ),
+      // );
     }
   }
 
