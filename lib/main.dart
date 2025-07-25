@@ -49,7 +49,7 @@ class AgroFundApp extends StatelessWidget {
         if (settings.name == '/invest') {
           final camp = settings.arguments as model.Campaign;
           return MaterialPageRoute(
-            builder: (context) => InvestPage(campaign: camp, aadharId: '123456789123'),
+            builder: (context) => InvestPage(campaign: camp, aadharId: '123456789123', walletBalance: 123),
           );
         }
         return null;

@@ -7,8 +7,9 @@ import 'package:crowedfundinghackathon/models/campaign.dart';
 class InvestPage extends StatefulWidget {
   final Campaign campaign;
   final String aadharId;
+  final double walletBalance;
 
-  const InvestPage({Key? key, required this.campaign, required this.aadharId}) : super(key: key);
+  const InvestPage({Key? key, required this.campaign, required this.aadharId, required this.walletBalance}) : super(key: key);
 
   @override
   State<InvestPage> createState() => _InvestPageState();
@@ -16,12 +17,13 @@ class InvestPage extends StatefulWidget {
 
 class _InvestPageState extends State<InvestPage> {
   final TextEditingController _amountController = TextEditingController();
-  double walletBalance = 5000;
+  late double walletBalance;
   bool _animateCircle = false;
 
   @override
   void initState() {
     super.initState();
+    walletBalance = widget.walletBalance;
     // Trigger animation after build
     Future.delayed(Duration(milliseconds: 200), () {
       setState(() {

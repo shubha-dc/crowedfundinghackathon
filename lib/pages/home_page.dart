@@ -235,8 +235,17 @@ Widget _buildCampaignCard(Campaign campaign) {
 
   return GestureDetector(
     onTap: () {
-      Navigator.pushNamed(context, '/invest', arguments: campaign);
-    },
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => InvestPage(
+            campaign: campaign,
+            aadharId: widget.aadharId,
+            walletBalance: walletBalance,
+          ),
+        ),
+      );
+      },
     child: Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       elevation: 3,
@@ -273,7 +282,8 @@ Widget _buildCampaignCard(Campaign campaign) {
                     MaterialPageRoute(
                       builder: (context) => InvestPage(
                         campaign: campaign,
-                        aadharId: widget.aadharId, // <-- pass it here
+                        aadharId: widget.aadharId,
+                        walletBalance: walletBalance,// <-- pass it here
                       ),
                     ),
                   );
