@@ -1,4 +1,6 @@
 import 'package:crowedfundinghackathon/pages/chatbot_screen.dart';
+import 'package:crowedfundinghackathon/pages/payment_page.dart';
+import 'package:crowedfundinghackathon/pages/repay_page.dart';
 import 'package:flutter/material.dart';
 
 // Import your pages
@@ -32,8 +34,11 @@ class AgroFundApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
-        '/home': (context) =>
-            HomePage(username: 'John Doe', userEmail: 'john@example.com', aadharId: '123456789123'),
+        '/home': (context) => HomePage(
+          username: 'John Doe',
+          userEmail: 'john@example.com',
+          aadharId: '123456789123',
+        ),
         '/wallet': (context) => WalletPage(aadharId: '5000'),
         '/profile': (context) => ProfilePage(
           username: 'John Doe',
@@ -43,13 +48,22 @@ class AgroFundApp extends StatelessWidget {
         ),
         '/createCampaign': (context) => CreateCampaignPage(),
         '/chatbot': (context) => ChatbotScreen(),
+        '/repay': (context) =>
+            RepayPage(username: 'John Doe', userEmail: 'john@example.com'),
       },
       // Use onGenerateRoute to handle arguments like Campaign
       onGenerateRoute: (settings) {
         if (settings.name == '/invest') {
           final camp = settings.arguments as model.Campaign;
           return MaterialPageRoute(
-            builder: (context) => InvestPage(campaign: camp, aadharId: '123456789123'),
+            builder: (context) =>
+                InvestPage(campaign: camp, aadharId: '123456789123'),
+          );
+        }
+        if (settings.name == '/payment') {
+          final camp = settings.arguments as model.Campaign;
+          return MaterialPageRoute(
+            builder: (context) => PaymentPage(campaign: camp),
           );
         }
         return null;

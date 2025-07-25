@@ -1,3 +1,4 @@
+import 'package:crowedfundinghackathon/pages/Repay_page.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:crowedfundinghackathon/models/campaign.dart';
@@ -6,14 +7,19 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'invest_page.dart';
 import 'wallet_page.dart';
+import 'explore_page.dart'; // Make sure these imports match your file structure
 
 class HomePage extends StatefulWidget {
   final String username;
   final String userEmail;
-  final String aadharId; // <-- add this
+  final String aadharId;
 
-  const HomePage({Key? key, required this.username, required this.userEmail, required this.aadharId})
-      : super(key: key);
+  const HomePage({
+    Key? key,
+    required this.username,
+    required this.userEmail,
+    required this.aadharId,
+  }) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -24,7 +30,6 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   String? errorMsg;
 
-  // Dummy wallet balance
   double walletBalance = 0;
   bool isWalletLoading = true;
   int touchedIndex = -1;
@@ -47,25 +52,31 @@ class _HomePageState extends State<HomePage> {
       errorMsg = null;
     });
     try {
-      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/get_projects/all'));
+      final response = await http.get(
+        Uri.parse(
+          'https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/get_projects/all',
+        ),
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['projects'] != null && data['projects'] is List) {
           final rawProjectList = data['projects'] as List;
           final fetchedCampaigns = rawProjectList
-              .map((item) => Campaign(
-            id: item['project_id'].toString(),
-            title: item['name'] ?? '',
-            description: item['description'] ?? '',
-            goalAmount: (item['amount_needed'] ?? 0).toDouble(),
-            raisedAmount: (item['amount_raised'] ?? 0).toDouble(),
-            farmerAadharId: item['farmer_aadhar_id'] ?? '',
-            sourcePercentage: 44,
-            sourceDescription: 'Medium',
-          ))
+              .map(
+                (item) => Campaign(
+                  id: item['project_id'].toString(),
+                  title: item['name'] ?? '',
+                  description: item['description'] ?? '',
+                  goalAmount: (item['amount_needed'] ?? 0).toDouble(),
+                  raisedAmount: (item['amount_raised'] ?? 0).toDouble(),
+                  farmerAadharId: item['farmer_aadhar_id'] ?? '',
+                  sourcePercentage: 44,
+                  sourceDescription: 'Medium',
+                ),
+              )
               .toList();
           setState(() {
-            campaigns = List<Campaign>.from(fetchedCampaigns); // Update the state variable
+            campaigns = fetchedCampaigns;
           });
         } else {
           campaigns = [];
@@ -86,18 +97,22 @@ class _HomePageState extends State<HomePage> {
       isWalletLoading = true;
     });
     try {
-      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/wallet_balance?aadhar_id=${widget.aadharId}'));
+      final response = await http.get(
+        Uri.parse(
+          'https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/wallet_balance?aadhar_id=${widget.aadharId}',
+        ),
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['balance'] != null) {
-          // Remove currency symbol if present
-          String balanceStr = data['balance'].replaceAll(RegExp(r'[^0-9.]'), '');
+          String balanceStr = data['balance'].replaceAll(
+            RegExp(r'[^0-9.]'),
+            '',
+          );
           walletBalance = double.tryParse(balanceStr) ?? 0;
         }
       }
-    } catch (e) {
-      // Optionally handle error
-    }
+    } catch (_) {}
     setState(() {
       isWalletLoading = false;
     });
@@ -108,7 +123,11 @@ class _HomePageState extends State<HomePage> {
       isFarmerLoading = true;
     });
     try {
-      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/dashboard?aadhar_id=${widget.aadharId}'));
+      final response = await http.get(
+        Uri.parse(
+          'https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/dashboard?aadhar_id=${widget.aadharId}',
+        ),
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['farmer_data'] != null) {
@@ -116,35 +135,35 @@ class _HomePageState extends State<HomePage> {
           farmerEmail = data['farmer_data']['email'] ?? widget.userEmail;
         }
       }
-    } catch (e) {
-      // Optionally handle error
-    }
+    } catch (_) {}
     setState(() {
       isFarmerLoading = false;
     });
   }
 
-  // Hamburger menu drawer
   Widget _buildDrawer() {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text(isFarmerLoading ? 'Loading...' : (farmerName ?? widget.username)),
-            accountEmail: Text(isFarmerLoading ? '' : (farmerEmail ?? widget.userEmail)),
+            accountName: Text(
+              isFarmerLoading ? 'Loading...' : (farmerName ?? widget.username),
+            ),
+            accountEmail: Text(
+              isFarmerLoading ? '' : (farmerEmail ?? widget.userEmail),
+            ),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Text(
-              (isFarmerLoading
-              ? ''
-              : (farmerName ?? widget.username))
-              .isNotEmpty
-              ? (isFarmerLoading
-              ? ''
-             : (farmerName ?? widget.username))[0].toUpperCase()
-              : '?',
-              style: TextStyle(color: Colors.blue),
+                (isFarmerLoading ? '' : (farmerName ?? widget.username))
+                        .isNotEmpty
+                    ? (isFarmerLoading
+                              ? ''
+                              : (farmerName ?? widget.username))[0]
+                          .toUpperCase()
+                    : '?',
+                style: TextStyle(color: Colors.blue),
               ),
             ),
           ),
@@ -167,14 +186,6 @@ class _HomePageState extends State<HomePage> {
                   builder: (context) => WalletPage(aadharId: widget.aadharId),
                 ),
               );
-              },
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/profile');
             },
           ),
           Divider(),
@@ -190,6 +201,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   List<PieChartSectionData> _getPieChartSections() {
     final data = [
       {'title': 'Investment', 'value': 50.0, 'color': Colors.blue},
@@ -200,16 +212,14 @@ class _HomePageState extends State<HomePage> {
       final index = entry.key;
       final item = entry.value;
       final isTouched = index == touchedIndex;
-      final fontSize = isTouched ? 18.0 : 14.0;
-      final radius = isTouched ? 60.0 : 50.0;
 
       return PieChartSectionData(
         color: item['color'] as Color,
         value: item['value'] as double,
         title: '${item['value']}%',
-        radius: radius,
+        radius: isTouched ? 60 : 50,
         titleStyle: TextStyle(
-          fontSize: fontSize,
+          fontSize: isTouched ? 18 : 14,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -230,14 +240,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-Widget _buildCampaignCard(Campaign campaign) {
-  double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(0.0, 1.0);
+  Widget _buildCampaignCard(Campaign campaign) {
+    double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(
+      0.0,
+      1.0,
+    );
 
-  return GestureDetector(
-    onTap: () {
-      Navigator.pushNamed(context, '/invest', arguments: campaign);
-    },
-    child: Card(
+    return Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -273,7 +282,7 @@ Widget _buildCampaignCard(Campaign campaign) {
                     MaterialPageRoute(
                       builder: (context) => InvestPage(
                         campaign: campaign,
-                        aadharId: widget.aadharId, // <-- pass it here
+                        aadharId: widget.aadharId,
                       ),
                     ),
                   );
@@ -284,8 +293,7 @@ Widget _buildCampaignCard(Campaign campaign) {
           ],
         ),
       ),
-    ),
-  );
+    );
   }
 
   @override
@@ -305,32 +313,29 @@ Widget _buildCampaignCard(Campaign campaign) {
                 style: TextStyle(color: Colors.blue),
               ),
             ),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.account_balance_wallet),
-            // tooltip: 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
-            tooltip: isWalletLoading ? 'Wallet: ...' : 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WalletPage(aadharId: widget.aadharId),
-                ),
-              );
-            },
+            tooltip: isWalletLoading
+                ? 'Wallet: ...'
+                : 'Wallet: ₹${walletBalance.toStringAsFixed(0)}',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WalletPage(aadharId: widget.aadharId),
+              ),
+            ),
           ),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            SizedBox(height: 8),
             Container(
-              margin: EdgeInsets.symmetric(vertical: 8.0),
               height: 200,
               child: PieChart(
                 PieChartData(
@@ -342,12 +347,11 @@ Widget _buildCampaignCard(Campaign campaign) {
                     touchCallback: (FlTouchEvent event, pieTouchResponse) {
                       setState(() {
                         if (!event.isInterestedForInteractions ||
-                            pieTouchResponse == null ||
-                            pieTouchResponse.touchedSection == null) {
+                            pieTouchResponse?.touchedSection == null) {
                           touchedIndex = -1;
                           return;
                         }
-                        touchedIndex = pieTouchResponse
+                        touchedIndex = pieTouchResponse!
                             .touchedSection!
                             .touchedSectionIndex;
                       });
@@ -357,7 +361,10 @@ Widget _buildCampaignCard(Campaign campaign) {
               ),
             ),
             campaigns.isEmpty
-                ? Center(child: Text('No active campaigns.'))
+                ? Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('No active campaigns.'),
+                  )
                 : ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -365,6 +372,35 @@ Widget _buildCampaignCard(Campaign campaign) {
                     itemBuilder: (context, index) =>
                         _buildCampaignCard(campaigns[index]),
                   ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RepayPage(
+                          username: 'John Doe',
+                          userEmail: 'john@example.com',
+                        ),
+                      ),
+                    ),
+                    child: Text('My Borrowing'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ExplorePage(campaigns: campaigns),
+                      ),
+                    ),
+                    child: Text('Explore Campaigns'),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

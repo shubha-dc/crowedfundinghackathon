@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:crowedfundinghackathon/models/campaign.dart';
 import 'package:crowedfundinghackathon/pages/app_scaffold.dart';
 
@@ -8,7 +7,7 @@ class RepayPage extends StatefulWidget {
   final String userEmail;
 
   const RepayPage({Key? key, required this.username, required this.userEmail})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<RepayPage> createState() => _RepayPageState();
@@ -23,6 +22,7 @@ class _RepayPageState extends State<RepayPage> {
       goalAmount: 10000,
       raisedAmount: 2500,
       sourcePercentage: 10,
+      farmerAadharId: '1234567',
       sourceDescription: 'Low risk',
     ),
     Campaign(
@@ -32,6 +32,7 @@ class _RepayPageState extends State<RepayPage> {
       goalAmount: 20000,
       raisedAmount: 15000,
       sourcePercentage: 58,
+      farmerAadharId: '1234567',
       sourceDescription: 'Medium risk',
     ),
   ];
@@ -112,7 +113,10 @@ class _RepayPageState extends State<RepayPage> {
   }
 
   Widget _buildCampaignCard(Campaign campaign) {
-    double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(0.0, 1.0);
+    double progress = (campaign.raisedAmount / campaign.goalAmount).clamp(
+      0.0,
+      1.0,
+    );
 
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -152,7 +156,11 @@ class _RepayPageState extends State<RepayPage> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, '/payment', arguments: campaign);
+                    Navigator.pushNamed(
+                      context,
+                      '/payment',
+                      arguments: campaign,
+                    );
                   },
                 ),
               ],
@@ -198,8 +206,7 @@ class _RepayPageState extends State<RepayPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            
-          campaigns.isEmpty
+            campaigns.isEmpty
                 ? Center(child: Text('No active campaigns.'))
                 : ListView.builder(
                     shrinkWrap: true,

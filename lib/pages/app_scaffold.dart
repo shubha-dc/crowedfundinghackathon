@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppScaffold extends StatefulWidget {
   final PreferredSizeWidget? appBar;
   final Widget body;
   final Widget? drawer;
-  final FloatingActionButton? floatingActionButton;
+  final Widget? floatingActionButton;
 
   const AppScaffold({
     super.key,
@@ -21,41 +20,29 @@ class AppScaffold extends StatefulWidget {
 }
 
 class _AppScaffoldState extends State<AppScaffold> {
-  bool _chatbotOpenedOnce = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkChatbotWelcome();
-  }
-
-  Future<void> _checkChatbotWelcome() async {
+  Future<void> _showWelcomeDialog() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool opened = prefs.getBool('chatbotOpened') ?? false;
     if (!opened) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showWelcomeDialog();
-        prefs.setBool('chatbotOpened', true);
-      });
-    }
-  }
-
-  void _showWelcomeDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Hello! 👋'),
-        content: Text(
-          "I'm Krisha 🤖, your AI farm assistant. Let’s grow together! 🌱",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Let\'s Chat'),
+      await prefs.setBool('chatbotOpened', true);
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text('Hello! 👋'),
+            content: Text(
+              "I'm Krisha 🤖, your AI farm assistant. Let’s grow together! 🌱",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Let\'s Chat'),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 
   @override
@@ -63,34 +50,37 @@ class _AppScaffoldState extends State<AppScaffold> {
     return Scaffold(
       appBar: widget.appBar,
       drawer: widget.drawer,
-      body: Stack(
+      body: widget.body,
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          widget.body,
-          Positioned(
-            bottom: 80,
-            right: 16,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                FloatingActionButton(
-                  heroTag: "chatbot",
-                  backgroundColor: Colors.white,
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/chatbot');
-                  },
-                  child: Lottie.asset(
-                    'lootie/robot-assistant.json',
-                    width: 40,
-                    height: 40,
-                    repeat: true,
-                  ),
-                ),
-              ],
+          FloatingActionButton(
+            heroTag: 'chatbot',
+            onPressed: () async {
+              await _showWelcomeDialog();
+              Navigator.pushNamed(context, '/chatbot');
+            },
+            backgroundColor: Colors.white,
+            tooltip: 'Krisha AI Assistant',
+            child: Image.asset(
+              'assets/images/robot.png',
+              height: 30,
+              width: 30,
             ),
+          ),
+          SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'createCampaign',
+            onPressed: () {
+              Navigator.pushNamed(context, '/createCampaign');
+            },
+            backgroundColor: Colors.green,
+            tooltip: 'Create Campaign',
+            child: Icon(Icons.add, color: Colors.white),
           ),
         ],
       ),
-      floatingActionButton: widget.floatingActionButton,
     );
   }
 }
