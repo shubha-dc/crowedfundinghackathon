@@ -29,10 +29,15 @@ class _HomePageState extends State<HomePage> {
   bool isWalletLoading = true;
   int touchedIndex = -1;
 
+  String? farmerName;
+  String? farmerEmail;
+  bool isFarmerLoading = true;
+
   @override
   void initState() {
     super.initState();
     fetchCampaigns();
+    fetchFarmerData();
     fetchWalletBalance();
   }
 
@@ -98,6 +103,27 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> fetchFarmerData() async {
+    setState(() {
+      isFarmerLoading = true;
+    });
+    try {
+      final response = await http.get(Uri.parse('https://python-route-nova-official.apps.hackathon.francecentral.aroapp.io/dashboard/dashboard?aadhar_id=${widget.aadharId}'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['farmer_data'] != null) {
+          farmerName = data['farmer_data']['name'] ?? widget.username;
+          farmerEmail = data['farmer_data']['email'] ?? widget.userEmail;
+        }
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+    setState(() {
+      isFarmerLoading = false;
+    });
+  }
+
   // Hamburger menu drawer
   Widget _buildDrawer() {
     return Drawer(
@@ -105,22 +131,22 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text(widget.username),
-            accountEmail: Text(widget.userEmail),
+            accountName: Text(isFarmerLoading ? 'Loading...' : (farmerName ?? widget.username)),
+            accountEmail: Text(isFarmerLoading ? '' : (farmerEmail ?? widget.userEmail)),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Text(
-                widget.username.isNotEmpty
-                    ? widget.username[0].toUpperCase()
-                    : '?',
-                style: TextStyle(fontSize: 40.0, color: Colors.blue),
+              (isFarmerLoading
+              ? ''
+              : (farmerName ?? widget.username))
+              .isNotEmpty
+              ? (isFarmerLoading
+              ? ''
+             : (farmerName ?? widget.username))[0].toUpperCase()
+              : '?',
+              style: TextStyle(color: Colors.blue),
               ),
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Home'),
-            onTap: () => Navigator.pop(context),
           ),
           ListTile(
             leading: Icon(Icons.campaign),
@@ -135,8 +161,13 @@ class _HomePageState extends State<HomePage> {
             title: Text('Wallet'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/wallet');
-            },
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WalletPage(aadharId: widget.aadharId),
+                ),
+              );
+              },
           ),
           ListTile(
             leading: Icon(Icons.person),
